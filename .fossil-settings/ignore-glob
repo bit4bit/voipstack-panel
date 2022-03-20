@@ -1,0 +1,15 @@
+backend/target
+backend/lib
+backend/classes
+backend/checkouts
+backend/pom.xml
+backend/dev-config.edn
+backend/test-config.edn
+backend/*.jar
+backend/*.class
+backend/.lein-*
+backend/profiles.clj
+backend/.env
+backend/.nrepl-port
+backend/node_modules
+backend/log
