@@ -23,3 +23,8 @@ frontend/.lein-*
 frontend/.nrepl-port
 frontend/node_modules/
 frontend/.shadow-cljs/
+
+agent/lib
+
+**~
+**#

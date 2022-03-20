@@ -4,6 +4,8 @@
    "node"
    "clojure"
    "clojure-tools"
+   "gcc-toolchain"
+   "gcc-toolchain:static"
    "emacs"
    "emacs-cider"
    "emacs-helm-cider"))
