@@ -1,5 +1,9 @@
 (specifications->manifest
  '("openjdk"
    "openjdk:doc"
+   "node"
    "clojure"
-   "clojure-tools"))
+   "clojure-tools"
+   "emacs"
+   "emacs-cider"
+   "emacs-helm-cider"))

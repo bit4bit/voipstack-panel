@@ -13,3 +13,13 @@ backend/.env
 backend/.nrepl-port
 backend/node_modules
 backend/log
+
+frontend/out/
+frontend/resources/public/js/compiled/
+frontend/target/
+frontend/*-init.clj
+frontend/*.log
+frontend/.lein-*
+frontend/.nrepl-port
+frontend/node_modules/
+frontend/.shadow-cljs/
