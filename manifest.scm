@@ -8,4 +8,5 @@
    "gcc-toolchain:static"
    "emacs"
    "emacs-cider"
-   "emacs-helm-cider"))
+   "emacs-helm-cider"
+   "emacs-typescript-mode"))
