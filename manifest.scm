@@ -5,8 +5,11 @@
    "clojure"
    "clojure-tools"
    "gcc-toolchain"
-   "gcc-toolchain:static"
+   "gmp"
+   "glibc"
+   "openssl"
    "emacs"
    "emacs-cider"
    "emacs-helm-cider"
-   "emacs-typescript-mode"))
+   "emacs-typescript-mode"
+   "ruby-rake"))

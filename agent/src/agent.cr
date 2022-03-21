@@ -5,7 +5,7 @@
 # This file is part of VOIPSTACK.
 #
 # VOIPSTACK is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
+#
 # VOIPSTACK is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License along with VOIPSTACK. If not, see <https://www.gnu.org/licenses/>.
@@ -47,6 +47,12 @@ module Voipstack::Agent
       end
     end
 
+    # se ejecuta frecuentemente
+    def handle_tick()
+      @js.call("handle_tick")
+    end
+
+    # comando enviado por el servidor al agente
     def handle_panel_command(cmd : Command)
       @js.call("handle_panel_command", cmd)
     end

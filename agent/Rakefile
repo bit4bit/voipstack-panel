@@ -1,0 +1,5 @@
+namespace :test do
+  task :runtime do
+    sh "crystal spec"
+  end
+end
