@@ -1,5 +1,10 @@
-namespace :test do
-  task :runtime do
-    sh "crystal spec"
+namespace :build do
+  task :js do
+    sh "node ./node_modules/.bin/tsc"
   end
 end
+
+task :test do
+    sh "crystal spec"
+end
+

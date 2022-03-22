@@ -12,3 +12,8 @@
 
 require "spec"
 require "../src/agent"
+
+def load_core_js()
+  %x{rake build:js}
+  File.read("./bin/core.js")
+end

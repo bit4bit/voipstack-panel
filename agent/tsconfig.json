@@ -1,14 +1,25 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "module": "commonjs",
+        "module": "none",
         "declaration": true,
         "outDir": "./bin/",
         "sourceMap": false,
-        "strict": true,
-        "strictPropertyInitialization": false
+        "strict": false,
+        "strictPropertyInitialization": false,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "allowUnreachableCode": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "suppressExcessPropertyErrors": false,
+        "noImplicitThis": true,
+        "noFallthroughCasesInSwitch": true,
+        "strictFunctionTypes": true,
+        "suppressImplicitAnyIndexErrors": false,
+        "allowUnusedLabels": false
     },
     "include": [
-        "javascript/**/*.ts"
+        "core/**/*.ts"
     ]
 }

@@ -18,7 +18,7 @@ module Voipstack::Agent
   VERSION = "0.1.0"
 
   alias Event = Hash(String, String | Float64 | Nil)
-  alias Command = Hash(String, String | Float64 | Nil)
+  alias Command = Array(String)
   
   class Runtime
 
@@ -53,8 +53,8 @@ module Voipstack::Agent
     end
 
     # comando enviado por el servidor al agente
-    def handle_panel_command(cmd : Command)
-      @js.call("handle_panel_command", cmd)
+    def handle_panel_command(cmd : String, arg : String)
+      @js.call("handle_panel_command", cmd, arg)
     end
     
     # gestionar evento de softswitch
