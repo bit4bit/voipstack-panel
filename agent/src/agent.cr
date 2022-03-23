@@ -12,7 +12,6 @@
 
 require "duktape"
 require "duktape/runtime"
-require "cbor"
 
 module Voipstack::Agent
   VERSION = "0.1.0"
@@ -73,3 +72,5 @@ module Voipstack::Agent
     end
   end
 end
+
+require "./client.cr"

@@ -12,8 +12,6 @@ dependencies:
   duktape:
     github: jessedoyle/duktape.cr
     version: ~> 1.0.0
-  cbor:
-    git: https://git.sr.ht/~arestifo/crystal-cbor
 
 crystal: 1.3.2
 

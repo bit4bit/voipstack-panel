@@ -12,8 +12,59 @@
 
 require "spec"
 require "../src/agent"
+require "http/server"
 
 def load_core_js()
-  %x{rake build:js}
   File.read("./bin/core.js")
+end
+
+class HTTPTestServer
+  class Request
+    getter :body
+
+    def initialize(req : HTTP::Request)
+      body = req.body
+      if body.nil?
+        @body = ""
+      else
+        @body = body.gets_to_end
+      end
+    end
+  end
+
+  @requests = Channel(Request).new(1)
+  @port : Int32
+
+  getter :port
+
+    
+  def initialize
+    @server = HTTP::Server.new do |context|
+      @requests.send Request.new(context.request.dup)
+
+      context.response.content_type = "application/json"
+      context.response.print "OK"
+    end
+
+    address = @server.bind_unused_port
+    @port = address.port
+
+    spawn do
+      @server.listen
+    end
+  end
+
+  
+  def last_request(timeout)
+    select
+    when req = @requests.receive
+      req
+    when timeout timeout
+      raise "http test server last request timeout"
+    end
+  end
+
+  def close
+    @server.close
+  end
 end
