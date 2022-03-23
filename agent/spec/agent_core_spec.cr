@@ -27,11 +27,24 @@ describe "corejs" do
     client_url = URI.parse("http://127.0.0.1:#{http_test_server.port}/agent/#{client_uuid}/realtime")
     client = Voipstack::Agent::Client.new(runtime, client_url)
     fsserver = Voipstack::Agent::FreeswitchInteractive.new(client)
-    
-    fsserver.dispatch_event({"name" => "test"})
+    spawn do
+      client.run
+    end
 
-    req = http_test_server.last_request(timeout: 3.second)
-    req.body.should eq "{\"name\":\"test\"}"
+    fsserver.dispatch_event(Voipstack::Agent::Event.new("test", {"name" => "test"}))
+
+    exc = trap_exception do
+      select
+      when req = http_test_server.requests.receive
+        req.body.should eq("{\"source\":\"freeswitch\",\"content\":{\"name\":\"test\"}}")
+      when timeout 1.second
+        raise "timeout"
+      end
+    end
+
+    client.close
     http_test_server.close
+
+    exc.should eq(nil)
   end
 end

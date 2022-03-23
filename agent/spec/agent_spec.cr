@@ -28,12 +28,12 @@ describe Voipstack::Agent::Runtime do
            function handle_panel_command(cmd, arg) {
                     ret = {};
                     ret[cmd] = arg;
-                    dispatch(ret)
+                    dispatch("test", ret)
            }
     JS
     runtime = Voipstack::Agent::Runtime.new(jscore)
     runtime.handle_panel_command("action", "test")
-    runtime.pull_event?.should eq({"action" => "test"})
+    runtime.pull_event?.try &.content.should eq({"action" => "test"})
   end
 
   it "dispatch message" do
@@ -44,13 +44,13 @@ describe Voipstack::Agent::Runtime do
 
            function handle_softswitch_event(source, event) {
                     event.added = 'test';
-                    dispatch(event);
+                    dispatch(source, event);
                     }
     JS
     runtime = Voipstack::Agent::Runtime.new(jscore)
-    runtime.handle_softswitch_event("test", {"name" => "test"})
+    runtime.handle_softswitch_event(Voipstack::Agent::Event.new("test", {"name" => "test"}))
     
-    runtime.pull_event?.should eq({"name" => "test", "added" => "test"})
+    runtime.pull_event?.as(Voipstack::Agent::Event).content.should eq({"name" => "test", "added" => "test"})
     runtime.pull_event?.should eq(nil)
   end
 end

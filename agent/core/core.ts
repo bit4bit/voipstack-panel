@@ -1,5 +1,6 @@
 
-type SoftswitchSource = "freeswitch" | "asterisk";
+
+type SoftswitchSource = string;
 
 type Realm = string;
 type UnixTimestamp = number;
@@ -9,7 +10,11 @@ type LegName = string
 type Tag = string;
 type Tags = Set<Tag>;
 
-type SoftswitchEvent = Map<string, string | number | null >;
+type SoftswitchEventContent = Map<string, string | number | null >;
+interface SoftswitchEvent {
+    source: string
+    content: SoftswitchEventContent;
+}
 type SoftswitchCommand = string
 type SoftswitchCommandArgument = string
 
@@ -53,13 +58,16 @@ class Softswitch {
 var softswitch = new Softswitch();
 var _version = 333;
 
+declare  function dispatch(source : SoftswitchSource, event : SoftswitchEventContent) : void;
+
 function handle_tick() {
 }
 
 function handle_panel_command(cmd : SoftswitchCommand, arg : SoftswitchCommandArgument) {
 }
 
-function handle_sofswitch_event(source : SoftswitchSource, event : SoftswitchEvent) {
+function handle_softswitch_event(source : SoftswitchSource, event : SoftswitchEventContent) {
+    dispatch("freeswitch", event);
 }
 
 function version() {

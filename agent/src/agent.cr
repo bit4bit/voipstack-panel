@@ -12,22 +12,36 @@
 
 require "duktape"
 require "duktape/runtime"
+require "json"
 
 module Voipstack::Agent
   VERSION = "0.1.0"
 
-  alias Event = Hash(String, String | Float64 | Nil)
+  alias EventValue = String | Float64 | Nil
+  alias EventContent = Hash(String, EventValue) | Hash(String, String)
+  alias EventSource = String
   alias Command = Array(String)
-  
-  class Runtime
 
+  class Event
+    include JSON::Serializable
+
+    getter :source
+    getter :content
+
+    def initialize(@source : EventSource, @content : EventContent)
+    end
+  end
+
+  # Runtime hace dinamica la logica del agente
+  # esto con el proposito de actualizar en tiempo de ejecucion el core.
+  class Runtime
     def initialize(jscore : String)
       @js = Duktape::Runtime.new
       @js.exec <<-JS
                var _dispatch_events = [];
 
-               function dispatch(event) {
-                        _dispatch_events.push(event)
+               function dispatch(source, event) {
+                        _dispatch_events.push({"source": source, "content": event})
                }
       JS
       @js.exec jscore
@@ -47,7 +61,7 @@ module Voipstack::Agent
     end
 
     # se ejecuta frecuentemente
-    def handle_tick()
+    def handle_tick
       @js.call("handle_tick")
     end
 
@@ -55,12 +69,12 @@ module Voipstack::Agent
     def handle_panel_command(cmd : String, arg : String)
       @js.call("handle_panel_command", cmd, arg)
     end
-    
+
     # gestionar evento de softswitch
-    def handle_softswitch_event(source : String, event : Event)
-      @js.call("handle_softswitch_event", source, event)
+    def handle_softswitch_event(event : Event)
+      @js.call("handle_softswitch_event", event.source, event.content)
     end
-       
+
     def version : Int32
       version = @js.call("version")
 

@@ -8,7 +8,7 @@ task :shards, :arg do |_, args|
   docker "shards #{args.arg}"
 end
 
-file 'bin/core.js' do
+file 'bin/core.js' => ['core/core.ts'] do
   # first run npm install
   sh "node ./node_modules/.bin/tsc"
 end

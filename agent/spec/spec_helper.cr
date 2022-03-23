@@ -36,7 +36,7 @@ class HTTPTestServer
   @port : Int32
 
   getter :port
-
+  getter :requests
     
   def initialize
     @server = HTTP::Server.new do |context|
@@ -49,22 +49,26 @@ class HTTPTestServer
     address = @server.bind_unused_port
     @port = address.port
 
+    started = Channel(Nil).new
     spawn do
+      started.send nil
       @server.listen
     end
-  end
-
-  
-  def last_request(timeout)
-    select
-    when req = @requests.receive
-      req
-    when timeout timeout
-      raise "http test server last request timeout"
-    end
+    started.receive
   end
 
   def close
     @server.close
+  end
+end
+
+
+def trap_exception : Exception?
+  begin
+    yield
+  rescue exc
+    return exc
+  else
+    return nil
   end
 end
