@@ -33,7 +33,8 @@ module Voipstack::Agent
   end
 
   class Softswitch
-    class Stater < Hash(String, EventValue)
+    alias StateType = Hash(String, EventValue)
+    class Stater < StateType
       def initialize(source : String)
         super()
         self["source"] = source
@@ -47,9 +48,33 @@ module Voipstack::Agent
     end
   end
 
+  class SoftswitchStateGetter
+    def state : Voipstack::Agent::Softswitch::Stater?
+    end
+  end
+  
+  class SoftswitchStateGetterDumb < SoftswitchStateGetter
+    def state
+      nil
+    end
+  end
+  class SoftswitchStateGetterInMemory < SoftswitchStateGetter
+    getter :state
+    def initialize(@state : Voipstack::Agent::Softswitch::Stater)
+    end
+  end
+
   # Runtime hace dinamica la logica del agente
   # esto con el proposito de actualizar en tiempo de ejecucion el core.
   class Runtime
+
+    # El oscilador del runtime
+    class Scheduler
+      def install(runtime : Runtime) : Channel(Exception?)
+        raise NotImplementedError.new("install")
+      end
+    end
+
     def initialize(jscore : String)
       @js = Duktape::Runtime.new
       @js.exec <<-JS
@@ -98,6 +123,36 @@ module Voipstack::Agent
       else
         version.as(Float64).to_i
       end
+    end
+  end
+
+  
+  class RuntimeScheduler::Timer < Runtime::Scheduler
+    def initialize(@tick : Time::Span)
+    end
+    def install(runtime : Runtime)
+      done = Channel(Exception?).new()
+
+      spawn name: "RuntimeScheduler::Timer" do
+        loop do
+          select # TODO(bit4bit) tick time configurable
+          when timeout @tick
+            runtime.handle_softswitch_state(Softswitch::FreeswitchState.new())
+          end
+        end
+      rescue exc
+        done.send exc
+      else
+        done.send nil
+      end
+
+      done
+    end
+  end
+
+  class RuntimeScheduler::Interactive < Runtime::Scheduler
+    def install(runtime : Runtime::Scheduler) : Exception?
+      runtime.handle_softswitch_state(Softswitch::FreeswitchState.new())
     end
   end
 end

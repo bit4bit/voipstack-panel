@@ -5,10 +5,10 @@ module Voipstack::Agent
     @pending_events = Channel(Event).new(2048)
     @done = Channel(Nil).new
 
-    def initialize(runtime : Runtime,
-                   client_url : URI)
-      @runtime = runtime
-      @client_url = client_url
+    def initialize(@runtime : Runtime,
+                   @client_url : URI,
+                   @runtime_scheduler : Runtime::Scheduler = RuntimeScheduler::Timer.new(500.millisecond)
+                  )
     end
 
     def dispatch_event(event : Event)
@@ -16,10 +16,10 @@ module Voipstack::Agent
     end
 
     def run
-      done_runtime = run_runtime
+      done_runtime = @runtime_scheduler.install(@runtime)
 
       loop do
-        select # al finilizar el procesador detenemos cliente
+        select # al finilizar el oscilador detenemos cliente
 
         when exc = done_runtime.receive
           if !exc.nil?
@@ -43,26 +43,6 @@ module Voipstack::Agent
     def close
       @done.send nil
       @pending_events.close
-    end
-
-    private def run_runtime
-      done = Channel(Exception?).new
-
-      spawn name: "runtime-loop" do
-        loop do
-          select # TODO(bit4bit) tick time configurable
-
-          when timeout 500.millisecond
-            @runtime.handle_softswitch_state(Softswitch::FreeswitchState.new())
-          end
-        end
-      rescue exc
-        done.send exc
-      else
-        done.send nil
-      end
-
-      done
     end
 
     private def http_dispatch_event(event : Event)
