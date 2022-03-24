@@ -53,7 +53,7 @@ module Voipstack::Agent
           select # TODO(bit4bit) tick time configurable
 
           when timeout 500.millisecond
-            @runtime.handle_tick
+            @runtime.handle_softswitch_state(Softswitch::FreeswitchState.new())
           end
         end
       rescue exc

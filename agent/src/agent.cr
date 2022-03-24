@@ -32,6 +32,21 @@ module Voipstack::Agent
     end
   end
 
+  class Softswitch
+    class Stater < Hash(String, EventValue)
+      def initialize(source : String)
+        super()
+        self["source"] = source
+      end
+    end
+
+    class FreeswitchState < Stater
+      def initialize
+        super("freeswitch")
+      end
+    end
+  end
+
   # Runtime hace dinamica la logica del agente
   # esto con el proposito de actualizar en tiempo de ejecucion el core.
   class Runtime
@@ -61,8 +76,8 @@ module Voipstack::Agent
     end
 
     # se ejecuta frecuentemente
-    def handle_tick
-      @js.call("handle_tick")
+    def handle_softswitch_state(state : Softswitch::Stater)
+      @js.call("handle_softswitch_state", state)
     end
 
     # comando enviado por el servidor al agente

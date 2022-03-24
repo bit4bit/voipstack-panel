@@ -55,12 +55,22 @@ class Softswitch {
     extensions: Extension[];
 }
 
+interface SoftswitchState {
+    source: string
+}
+
+interface FreeswitchState extends SoftswitchState {
+}
+
+interface AsteriskState {
+}
+
 var softswitch = new Softswitch();
 var _version = 333;
 
 declare  function dispatch(source : SoftswitchSource, event : SoftswitchEventContent) : void;
 
-function handle_tick() {
+function handle_softswitch_state(state : FreeswitchState | AsteriskState) {
 }
 
 function handle_panel_command(cmd : SoftswitchCommand, arg : SoftswitchCommandArgument) {
