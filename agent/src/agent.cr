@@ -17,9 +17,9 @@ require "json"
 module Voipstack::Agent
   VERSION = "0.1.0"
 
-  alias EventValue = String | Float64 | Nil
-  alias EventContent = Hash(String, EventValue) | Hash(String, String)
-  alias EventSource = String
+  alias EventValue = String | Float64 | Nil 
+  alias EventContent = Hash(String, EventValue) | Hash(String, String) | Hash(String, Array(Hash(String, EventValue)))
+  alias SoftswitchSource = String
   alias Command = Array(String)
 
   class Event
@@ -28,22 +28,45 @@ module Voipstack::Agent
     getter :source
     getter :content
 
-    def initialize(@source : EventSource, @content : EventContent)
+    def initialize(@source : SoftswitchSource, @content : EventContent)
     end
   end
 
   class Softswitch
-    alias StateType = Hash(String, EventValue)
+    alias StateType = Hash(String, EventValue | Array(Hash(String, String)))
     class Stater < StateType
-      def initialize(source : String)
+      getter :source
+
+      def initialize(@source : SoftswitchSource)
         super()
-        self["source"] = source
       end
     end
 
     class FreeswitchState < Stater
       def initialize
         super("freeswitch")
+      end
+
+      def handle_registrations_from_json(data : String)
+        record = JSON.parse(data)
+
+        if record["row_count"].to_s.to_i > 0
+          extensions = Array(Hash(String, String)).new
+          
+          record["rows"].as_a.each do |row|
+            reg_user = row["reg_user"].to_s
+            realm = row["realm"].to_s
+            id = "#{reg_user}@#{realm}"
+
+            extensions << {
+              "id" => id,
+              "name" => reg_user,
+              "realm" => realm
+            }
+          end
+
+          self["extensions"] = extensions
+        end
       end
     end
   end
@@ -102,7 +125,7 @@ module Voipstack::Agent
 
     # se ejecuta frecuentemente
     def handle_softswitch_state(state : Softswitch::Stater)
-      @js.call("handle_softswitch_state", state)
+      @js.call("handle_softswitch_state", state.source, state)
     end
 
     # comando enviado por el servidor al agente

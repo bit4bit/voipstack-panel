@@ -18,7 +18,9 @@ interface SoftswitchEvent {
 type SoftswitchCommand = string
 type SoftswitchCommandArgument = string
 
-interface Call {
+interface Channel {
+    extension_id: string;
+
     caller_id_name: LegName;
     caller_id_number: LegNumber;
     callee_id_name: LegName;
@@ -36,10 +38,10 @@ interface Call {
 
 // representa el registro sip actual de una extension
 interface Extension {
+    id: string;
     name: string;
     realm: Realm;
     expires_at: UnixTimestamp;
-    calls: Call[];
 
     tags: Tags;
 
@@ -53,6 +55,7 @@ class Softswitch {
     source: SoftswitchSource;
     version: string;
     extensions: Extension[];
+    channels: Channel[];
 }
 
 interface SoftswitchState {
@@ -60,6 +63,7 @@ interface SoftswitchState {
 }
 
 interface FreeswitchState extends SoftswitchState {
+    extensions: Extension[];
 }
 
 interface AsteriskState {
@@ -68,16 +72,27 @@ interface AsteriskState {
 var softswitch = new Softswitch();
 var _version = 333;
 
-declare  function dispatch(source : SoftswitchSource, event : SoftswitchEventContent) : void;
+//emitir evento a plataforma
+declare  function dispatch(source : SoftswitchSource, event : any) : void;
 
-function handle_softswitch_state(state : FreeswitchState | AsteriskState) {
+//gestionar nueva estado del softswitch
+function handle_softswitch_state(source : SoftswitchSource, state : FreeswitchState | AsteriskState) {
+    if(source == "freeswitch") {
+        const current = state as FreeswitchState;
+        softswitch.extensions = current.extensions;
+    }
 }
 
+//gestionar accion iniciada desde la plataforma
 function handle_panel_command(cmd : SoftswitchCommand, arg : SoftswitchCommandArgument) {
 }
 
-function handle_softswitch_event(source : SoftswitchSource, event : SoftswitchEventContent) {
-    dispatch("freeswitch", event);
+function handle_softswitch_event(source : SoftswitchSource, event : any) {
+    if(source == "platform" && event.action == "refresh-state") {
+        dispatch("freeswitch", softswitch);
+    } else {
+        dispatch("freeswitch", event);
+    }
 }
 
 function version() {

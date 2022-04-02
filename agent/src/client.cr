@@ -15,6 +15,10 @@ module Voipstack::Agent
       @pending_events.send event
     end
 
+    def handle_softswitch_state(state : Softswitch::Stater)
+      @runtime.handle_softswitch_state(state)
+    end
+    
     def run
       done_runtime = @runtime_scheduler.install(@runtime)
 
@@ -59,6 +63,10 @@ module Voipstack::Agent
 
     def dispatch_event(event : Event)
       @client.dispatch_event(event)
+    end
+
+    def dispatch_softswitch_state(state : Softswitch::Stater)
+      @client.handle_softswitch_state(state)
     end
   end
 end
