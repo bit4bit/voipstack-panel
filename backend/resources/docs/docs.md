@@ -87,6 +87,18 @@ the `env/dev/clj/` source path.
 
 <a class="level-item button" href="https://luminusweb.com/docs/middleware.html">learn more about middleware »</a>
 
+<div class="bs-callout bs-callout-danger">
+
+#### MongoDB configuration is required
+
+If you haven't already, then please follow the steps below to configure your MongoDB connection.
+
+* Ensure that MongoDB is up and running.
+* Set the connection parameters in the `dev-config.edn` and `test-config.edn` files.
+* Let `mount` know to start the database connection by `require`-ing `backend.core` in some other namespace.
+* Restart the application.
+
+</div>
 
 
 

@@ -5,12 +5,14 @@
 
   :dependencies [[ch.qos.logback/logback-classic "1.2.10"]
                  [clojure.java-time "0.3.3"]
+                 [com.google.guava/guava "27.0.1-jre"]
+                 [com.novemberain/monger "3.1.0" :exclusions [com.google.guava/guava]]
                  [cprop "0.1.19"]
                  [expound "0.9.0"]
                  [funcool/struct "1.4.0"]
                  [json-html "0.4.7"]
+                 [luminus-http-kit "0.1.9"]
                  [luminus-transit "0.1.5"]
-                 [luminus-undertow "0.1.14"]
                  [luminus/ring-ttl-session "0.3.3"]
                  [markdown-clj "1.10.8"]
                  [metosin/muuntaja "0.6.8"]
@@ -24,12 +26,10 @@
                  [org.webjars.npm/bulma "0.9.3"]
                  [org.webjars.npm/material-icons "1.0.0"]
                  [org.webjars/webjars-locator "0.42"]
-                 [org.webjars/webjars-locator-jboss-vfs "0.1.0"]
                  [ring-webjars "0.2.0"]
                  [ring/ring-core "1.9.5"]
                  [ring/ring-defaults "0.3.3"]
                  [selmer "1.12.50"]
-                 [cheshire "5.10.2"]
                  [com.taoensso/sente "1.16.2"]]
 
   :min-lein-version "2.0.0"

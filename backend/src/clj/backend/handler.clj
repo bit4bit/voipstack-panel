@@ -3,6 +3,7 @@
     [backend.middleware :as middleware]
     [backend.layout :refer [error-page]]
     [backend.routes.home :refer [home-routes]]
+    [backend.routes.ws :refer [websocket-routes]]
     [reitit.ring :as ring]
     [ring.middleware.content-type :refer [wrap-content-type]]
     [ring.middleware.webjars :refer [wrap-webjars]]
@@ -17,7 +18,8 @@
   :start
   (ring/ring-handler
     (ring/router
-      [(home-routes)])
+     [(home-routes)
+      (websocket-routes)])
     (ring/routes
       (ring/create-resource-handler
         {:path "/"})

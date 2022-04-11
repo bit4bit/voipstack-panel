@@ -5,6 +5,8 @@
    [frontend.events :as events]
    [frontend.views :as views]
    [frontend.config :as config]
+   [mount.core :as mount]
+   [frontend.websockets :as ws]
    ))
 
 
@@ -19,6 +21,7 @@
     (rdom/render [views/main-panel] root-el)))
 
 (defn init []
+  (mount/start)
   (re-frame/dispatch-sync [::events/initialize-db])
   (dev-setup)
   (mount-root))
