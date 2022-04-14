@@ -16,6 +16,7 @@
                  [luminus/ring-ttl-session "0.3.3"]
                  [markdown-clj "1.10.8"]
                  [metosin/muuntaja "0.6.8"]
+                 [metosin/muuntaja-cheshire "0.6.8"]
                  [metosin/reitit "0.5.15"]
                  [metosin/ring-http-response "0.9.3"]
                  [mount "0.1.16"]
@@ -60,7 +61,7 @@
                                  [ring/ring-mock "0.4.0"]]
                   :plugins      [[com.jakemccrary/lein-test-refresh "0.24.1"]
                                  [jonase/eastwood "0.3.5"]
-                                 [cider/cider-nrepl "0.26.0"]] 
+                                 [cider/cider-nrepl "0.28.3"]] 
                   
                   :source-paths ["env/dev/clj" ]
                   :resource-paths ["env/dev/resources"]
