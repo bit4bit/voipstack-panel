@@ -19,7 +19,7 @@
 (mount/defstate channel-router
   :start (sente/start-chsk-router!
           (:ch-recv @socket)
-          #'handle-message!)
+          #'receive-message!)
   :stop (when-let [stop-fn @channel-router]
           (stop-fn)))
 
@@ -28,7 +28,7 @@
     id))
 
 (defmethod handle-message! :event/state
-  [{:keys [event]} _]
+  [_ event]
   (let [event-type (first event)
         event (last event)]
     (.log js/console "Event state: " (pr-str event))
@@ -43,6 +43,10 @@
 (defmethod handle-message! :default
   [{:keys [event]} _]
   (.warn js/console "Unknown websocket message: " (pr-str event)))
+
+(defn receive-message!
+  [{:keys [id event] :as ws-message}]
+  (handle-message! ws-message event))
 
 (defn send! [message]
   (if-let [send-fn (:send-fn @socket)]
