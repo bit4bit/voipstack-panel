@@ -12,7 +12,7 @@
 
 (re-frame/reg-event-db
  :event/state
- (fn-traced [db [before [_ event]]]
+ (fn-traced [db [before event]]
             (.log js/console "Event before " (pr-str before))
             (.log js/console "Event " (pr-str event))
    (assoc db :extensions (get-in event [:content :extensions]))))

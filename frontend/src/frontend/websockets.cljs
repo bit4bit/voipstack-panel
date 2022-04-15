@@ -29,8 +29,10 @@
 
 (defmethod handle-message! :event/state
   [{:keys [event]} _]
-  (.log js/console "Event state: " (pr-str event))
-  (re-frame/dispatch [:event/state event]))
+  (let [event-type (first event)
+        event (last event)]
+    (.log js/console "Event state: " (pr-str event))
+    (re-frame/dispatch [event-type event])))
 
 (defmethod handle-message! :chsk/handshake
   [{:keys [event]} _]
