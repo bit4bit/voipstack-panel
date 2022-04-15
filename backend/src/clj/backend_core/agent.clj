@@ -16,7 +16,7 @@
   (start [this] nil)
   (stop [this] nil)
   (dispatch [this agent-id event]
-    (send-fn agent-id event)))
+      (send-fn agent-id [:event/state event])))
 
 (defn new-core-runner-sync [send-fn]
   (core-runner-sync. send-fn))
