@@ -18,16 +18,19 @@ interface SoftswitchEvent {
 type SoftswitchCommand = string
 type SoftswitchCommandArgument = string
 
-interface Channel {
+interface Call {
     extension_id: string;
 
+    destination: string;
+    direction: string;
+    callstate: string;
     caller_id_name: LegName;
     caller_id_number: LegNumber;
     callee_id_name: LegName;
     callee_id_number: LegNumber;
-    created_at: UnixTimestamp;
-    answered_at: UnixTimestamp;
-    hangup_at: UnixTimestamp;
+    created_epoch: UnixTimestamp;
+    answered_epoch: UnixTimestamp;
+    hangup_epoch: UnixTimestamp;
 
     // etiquetamos la llamada, ejemplos: inbound,
     // callcenter-queue:7000@pruebas.org
@@ -55,7 +58,7 @@ class Softswitch {
     source: SoftswitchSource;
     version: string;
     extensions: Extension[];
-    channels: Channel[];
+    calls: Call[];
 }
 
 interface SoftswitchState {
@@ -64,6 +67,7 @@ interface SoftswitchState {
 
 interface FreeswitchState extends SoftswitchState {
     extensions: Extension[];
+    calls: Call[];
 }
 
 interface AsteriskState {
@@ -80,6 +84,7 @@ function handle_softswitch_state(source : SoftswitchSource, state : FreeswitchSt
     if(source == "freeswitch") {
         const current = state as FreeswitchState;
         softswitch.extensions = current.extensions;
+        softswitch.calls = current.calls;
     }
 }
 
@@ -88,6 +93,7 @@ function handle_panel_command(cmd : SoftswitchCommand, arg : SoftswitchCommandAr
 }
 
 function handle_softswitch_event(source : SoftswitchSource, event : any) {
+    //TODO(bit4bit) solo para pruebas
     if(source == "platform" && event.action == "refresh-state") {
         dispatch("freeswitch", softswitch);
     } else {

@@ -49,7 +49,7 @@ module Voipstack::Agent
       @pending_events.close
     end
 
-    private def http_dispatch_event(event : Event)
+    private def http_dispatch_event(event)
       client = HTTP::Client.new(@client_url)
       client.write_timeout = 3.second
       client.read_timeout = 3.second

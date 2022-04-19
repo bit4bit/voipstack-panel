@@ -60,28 +60,29 @@ describe "corejs" do
         ev = {
           "source" => "freeswitch",
           "content" => {
-            "extensions" => [
-              {
+            "extensions" => {
+              "2903@voipstack99.voipstack.com" => {
                 "id" => "2903@voipstack99.voipstack.com",
                 "name" => "2903",
                 "realm" => "voipstack99.voipstack.com"
               },
-              {
+              "3207@voipstack99.voipstack.com" => {
                 "id" => "3207@voipstack99.voipstack.com",
                 "name" => "3207",
                 "realm" => "voipstack99.voipstack.com"
               },
-              {
-                "id" => "3219@voipstack99.voipstack.com",
-                "name" => "3219",
-                "realm" => "voipstack99.voipstack.com"
+              "3219@voipstack99.voipstack.com" => {
+                  "id" => "3219@voipstack99.voipstack.com",
+                  "name" => "3219",
+                  "realm" => "voipstack99.voipstack.com"
               },
-              {
+              "3205@voipstack99.voipstack.com" => {
                 "id" => "3205@voipstack99.voipstack.com",
                 "name" => "3205",
                 "realm" => "voipstack99.voipstack.com"
               }
-            ]
+            },
+            "calls" => Voipstack::Agent::Calls.new
           }
         }
         
@@ -115,6 +116,139 @@ describe "corejs" do
 
     agent_test.close
 
+    exc.should eq(nil)
+  end
+
+  it "dispatch softswitch state calls" do
+    agent_test = AgentClientTest.new(jscore)
+    spawn do
+      agent_test.client.run
+    rescue ex
+      exit 1
+    end
+
+    fsstate = Voipstack::Agent::Softswitch::FreeswitchState.new()
+    fsstate.handle_channels_from_json(%({
+  "row_count": 2,
+  "rows": [
+    {
+      "uuid": "bfa99eb8-c2b3-4a83-b064-b71a3a16532f",
+      "direction": "inbound",
+      "created": "2022-04-17 22:28:59",
+      "created_epoch": "1650234539",
+      "name": "sofia/hub.voipstack.com/102@demo.voipstack.com:7443",
+      "state": "CS_EXECUTE",
+      "cid_name": "102",
+      "cid_num": "102",
+      "ip_addr": "201.185.101.173",
+      "dest": "555444",
+      "application": "bridge",
+      "application_data": "{bridge_early_media=false,effective_caller_id_number=17875391485,effective_caller_id_name=17875391485,ignore_display_updates=true,origination_callee_id_number=17875391485,origination_callee_id_name=17875391485,origination_caller_id_number=12345678,origination_caller_id_name=12345678}[]sofia/gateway/sip.vip2phone.net/9036#17875391485|error/NO_ROUTE_DESTINATION",
+      "dialplan": "XML",
+      "context": "demo.voipstack.com",
+      "read_codec": "PCMU",
+      "read_rate": "8000",
+      "read_bit_rate": "64000",
+      "write_codec": "PCMU",
+      "write_rate": "8000",
+      "write_bit_rate": "64000",
+      "secure": "srtp:dtls:AES_CM_128_HMAC_SHA1_80",
+      "hostname": "34.196.247.12",
+      "presence_id": "102@demo.voipstack.com",
+      "presence_data": "",
+      "accountcode": "",
+      "callstate": "EARLY",
+      "callee_name": "",
+      "callee_num": "",
+      "callee_direction": "",
+      "call_uuid": "",
+      "sent_callee_name": "",
+      "sent_callee_num": "",
+      "initial_cid_name": "102",
+      "initial_cid_num": "102",
+      "initial_ip_addr": "201.185.101.173",
+      "initial_dest": "555444",
+      "initial_dialplan": "XML",
+      "initial_context": "demo.voipstack.com"
+    },
+    {
+      "uuid": "6098c3eb-7f3c-4b00-9fa9-7a1b21372472",
+      "direction": "outbound",
+      "created": "2022-04-17 22:28:59",
+      "created_epoch": "1650234539",
+      "name": "sofia/hub.voipstack.com/9036#12345678",
+      "state": "CS_CONSUME_MEDIA",
+      "cid_name": "12345678",
+      "cid_num": "12345678",
+      "ip_addr": "201.185.101.173",
+      "dest": "9036#555444",
+      "application": "",
+      "application_data": "",
+      "dialplan": "XML",
+      "context": "demo.voipstack.com",
+      "read_codec": "PCMU",
+      "read_rate": "8000",
+      "read_bit_rate": "64000",
+      "write_codec": "PCMU",
+      "write_rate": "8000",
+      "write_bit_rate": "64000",
+      "secure": "",
+      "hostname": "34.196.247.12",
+      "presence_id": "",
+      "presence_data": "",
+      "accountcode": "",
+      "callstate": "EARLY",
+      "callee_name": "98765321",
+      "callee_num": "98765321",
+      "callee_direction": "",
+      "call_uuid": "bfa99eb8-c2b3-4a83-b064-b71a3a16532f",
+      "sent_callee_name": "",
+      "sent_callee_num": "",
+      "initial_cid_name": "12345678",
+      "initial_cid_num": "12345678",
+      "initial_ip_addr": "201.185.101.173",
+      "initial_dest": "9036#555444",
+      "initial_dialplan": "XML",
+      "initial_context": "demo.voipstack.com"
+    }
+  ]
+}))
+    agent_test.fsserver.dispatch_softswitch_state(fsstate)
+    agent_test.fsserver.dispatch_event(Voipstack::Agent::Event.new("platform", {"action" => "refresh-state"}))
+
+    exc = trap_exception do
+      select
+      when req = agent_test.http_server.requests.receive
+        ev = {
+          "source" => "freeswitch",
+          "content" => {
+            "extensions" => Voipstack::Agent::Extensions.new,
+            "calls" => {
+              "bfa99eb8-c2b3-4a83-b064-b71a3a16532f" => {              
+                "id" => "bfa99eb8-c2b3-4a83-b064-b71a3a16532f",
+                "extension_id" => "102@demo.voipstack.com",
+                "realm" => "demo.voipstack.com",
+                "direction" => "outbound",
+                "destination" => "555444",
+                "callstate" => "early",
+                "caller_id_name" => "12345678",
+                "caller_id_number" => "12345678",
+                "callee_id_name" => "98765321",
+                "callee_id_number" => "98765321",
+                "created_epoch" => "1650234539",
+                "tags" => [] of String,
+              }
+            }
+          }
+        }
+
+        Voipstack::Agent::Event.from_json(req.body.not_nil!).should eq(Voipstack::Agent::Event.from_json(ev.to_json))
+      when timeout 1.second
+        raise "timeout"
+      end
+    end
+
+    agent_test.close
     exc.should eq(nil)
   end
 end

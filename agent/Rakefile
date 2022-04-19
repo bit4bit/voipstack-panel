@@ -1,4 +1,4 @@
-DOCKER_IMAGE="crystallang/crystal:1.3.2-alpine"
+DOCKER_IMAGE="crystallang/crystal:1.4.0-alpine"
 def docker(arg)
  sh "docker run --rm -ti -u #{Process.uid} -v #{Dir.pwd}:/usr/app -w /usr/app #{DOCKER_IMAGE} #{arg}"
 end
@@ -15,7 +15,7 @@ end
 
 desc "test in container"
 task :test => ['bin/core.js'] do
-  docker "crystal spec"
+  docker "crystal spec spec/agent_core_spec.cr --error-trace"
 end
 
 

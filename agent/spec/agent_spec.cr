@@ -48,9 +48,87 @@ describe Voipstack::Agent::Runtime do
                     }
     JS
     runtime = Voipstack::Agent::Runtime.new(jscore)
-    runtime.handle_softswitch_event(Voipstack::Agent::Event.new("test", {"name" => "test"}))
+    runtime.handle_softswitch_event("test", {"name" => "test", "added" => "test"})
     
     runtime.pull_event?.as(Voipstack::Agent::Event).content.should eq({"name" => "test", "added" => "test"})
     runtime.pull_event?.should eq(nil)
   end
+
+  it "dispatch message usin Envelop" do
+    jscore = <<-JS
+           function version() {
+                    return 999;
+           }
+
+           function handle_softswitch_event(source, event) {
+                    event.added = 'test';
+                    dispatch(source, event);
+                    }
+    JS
+    runtime = Voipstack::Agent::Runtime.new(jscore)
+    runtime.handle_softswitch_event(Voipstack::Agent::Event.new("test", {"name" => "test", "added" => "test"}))
+    
+    runtime.pull_event?.as(Voipstack::Agent::Event).content.should eq({"name" => "test", "added" => "test"})
+    runtime.pull_event?.should eq(nil)
+  end
+
+  it "dispatch message complex" do
+    jscore = <<-JS
+           function version() {
+                    return 999;
+           }
+
+           function handle_softswitch_event(source, event) {
+                    event.added = 'test';
+                    dispatch(source, event);
+                    }
+    JS
+    runtime = Voipstack::Agent::Runtime.new(jscore)
+    runtime.handle_softswitch_event("test", {"name" => "test", "added" => "test",
+                                             "nested" => {"a" => "b"},
+                                             "nestednested" => {"a" => {"a" => "2"}},
+                                             "list" => ["1", "2"]})
+    
+    runtime.pull_event?.as(Voipstack::Agent::Event).content.should eq({"name" => "test", "added" => "test",
+                                                                       "nested" => {"a" => "b"},
+                                                                       "nestednested" => {"a" => {"a" => "2"}},
+                                                                       "list" => ["1","2"]})
+    runtime.pull_event?.should eq(nil)
+  end
+
+  it "process softswitch state" do
+    jscore = <<-JS
+           function version() {
+                    return 999;
+           }
+
+           function handle_softswitch_state(source, event) {
+                    event.added = 'test';
+                    dispatch(source, event);
+                    }
+    JS
+    runtime = Voipstack::Agent::Runtime.new(jscore)
+    runtime.handle_softswitch_state(
+      Voipstack::Agent::Softswitch::Stater.new("test",
+                                               calls: {
+                                                 "abc" => {
+                                                   "id" => "abc",
+                                                   "tags" => ["1"]
+                                                 }
+                                               },
+                                               extensions: {
+                                                 "cba" => {
+                                                   "id" => "cba"
+                                                 }
+                                               }
+                                              )
+    )
+
+    
+    runtime.pull_event?.as(Voipstack::Agent::Event).content.should eq(
+                                                              {"calls" => {"abc" => {"id" => "abc", "tags" => ["1"]}},
+                                                               "extensions" => {"cba" => {"id" => "cba"}}, "added" => "test"})
+    runtime.pull_event?.should eq(nil)
+  end
+
 end
