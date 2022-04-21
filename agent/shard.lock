@@ -4,3 +4,7 @@ shards:
     git: https://github.com/jessedoyle/duktape.cr.git
     version: 1.0.0
 
+  freeswitch-esl:
+    git: https://github.com/bit4bit/freeswitch-esl.cr.git
+    version: 1.0.2
+

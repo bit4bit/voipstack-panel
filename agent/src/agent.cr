@@ -180,12 +180,18 @@ module Voipstack::Agent
   # Runtime hace dinamica la logica del agente
   # esto con el proposito de actualizar en tiempo de ejecucion el core.
   class Runtime
+    @js_mutex = Mutex.new
 
     # El oscilador del runtime
     class Scheduler
       def install(runtime : Runtime) : Channel(Exception?)
         raise NotImplementedError.new("install")
       end
+    end
+
+    def self.from_file(path : String)
+      script = File.read(path)
+      self.new(script)
     end
 
     def initialize(jscore : String)
@@ -212,32 +218,47 @@ module Voipstack::Agent
 
     # evento para voipstack-panel
     def pull_event? : Event | Nil
-      event = @js.eval("_dispatch_events.shift()")
-      if event.nil?
-        nil
-      else
-        Event.from_json(event.to_json)
+      synchronize do
+        event = @js.eval("_dispatch_events.shift()")
+        if event.nil?
+          nil
+        else
+          Event.from_json(event.to_json)
+        end
       end
     end
 
     # se ejecuta frecuentemente
     def handle_softswitch_state(state : Softswitch::Stater)
-      @js.call("_unserialize_handle_softswitch_state", state.source, state.to_json)
+      synchronize do
+        @js.call("_unserialize_handle_softswitch_state", state.source, state.to_json)
+      end
     end
 
     # comando enviado por el servidor al agente
     def handle_panel_command(cmd : String, arg : String)
-      @js.call("handle_panel_command", cmd, arg)
+      synchronize do
+        @js.call("handle_panel_command", cmd, arg)
+      end
     end
 
     # gestionar evento de softswitch
     def handle_softswitch_event(envelop : Event)
-      @js.call("handle_softswitch_event", envelop.source, envelop.content)
+      synchronize do
+        @js.call("handle_softswitch_event", envelop.source, envelop.content)
+      end
     end
     def handle_softswitch_event(source : SoftswitchSource, event : EventGeneric)
-      @js.call("handle_softswitch_event", source, event)
+      synchronize do
+        @js.call("handle_softswitch_event", source, event)
+      end
     end
 
+    private def synchronize
+      @js_mutex.synchronize do
+        yield
+      end
+    end
     def version : Int32
       version = @js.call("version")
 
@@ -254,11 +275,11 @@ module Voipstack::Agent
     def initialize(@tick : Time::Span)
     end
     def install(runtime : Runtime)
-      done = Channel(Exception?).new()
+      done = Channel(Exception?).new(1)
 
       spawn name: "RuntimeScheduler::Timer" do
         loop do
-          select # TODO(bit4bit) tick time configurable
+          select
           when timeout @tick
             runtime.handle_softswitch_state(Softswitch::FreeswitchState.new())
           end
