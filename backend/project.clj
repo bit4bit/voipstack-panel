@@ -17,6 +17,7 @@
                  [markdown-clj "1.10.8"]
                  [metosin/muuntaja "0.6.8"]
                  [metosin/muuntaja-cheshire "0.6.8"]
+                 [cheshire "5.10.2"]
                  [metosin/reitit "0.5.15"]
                  [metosin/ring-http-response "0.9.3"]
                  [mount "0.1.16"]

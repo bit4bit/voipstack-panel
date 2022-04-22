@@ -8,6 +8,11 @@
    (:extensions db)))
 
 (re-frame/reg-sub
+ ::calls
+ (fn [db]
+   (:calls db)))
+
+(re-frame/reg-sub
  ::name
  (fn [db]
    (:name db)))

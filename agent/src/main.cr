@@ -43,8 +43,8 @@ Log.debug { "loading config from #{config_path} " }
 config = Config.from_file(config_path)
 
 runtime = Voipstack::Agent::Runtime.from_file(config.core_path)
-backend_url = URI.parse(config.backend_endpoint_url + "/agent/" + config.client_uuid + "/realtime")
-scheduler = Voipstack::Agent::RuntimeScheduler::Timer.new(1.second)
+backend_url = URI.parse(config.backend_endpoint_url + "/agent/" + config.client_uuid + "/realtime/state")
+scheduler = Voipstack::Agent::RuntimeScheduler::Timer.new(500.millisecond)
 client = Voipstack::Agent::Client.new(
   runtime: runtime,
   runtime_scheduler: scheduler,

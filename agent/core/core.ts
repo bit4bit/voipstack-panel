@@ -101,6 +101,11 @@ function handle_softswitch_event(source : SoftswitchSource, event : any) {
     }
 }
 
+//gestionar ciclo interno
+function handle_continue() {
+    dispatch("freeswitch", softswitch);
+}
+
 function version() {
     return _version;
 }

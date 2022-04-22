@@ -12,7 +12,7 @@
                    :extension/realm
                    ]))
 (s/def :extensions/extensions
-  (s/coll-of :extension/extension))
+  (s/map-of keyword? :extension/extension))
 (s/def :event/source string?)
 (s/def :event/content
   (s/keys :req-un [:extensions/extensions]))

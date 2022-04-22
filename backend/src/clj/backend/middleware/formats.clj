@@ -1,11 +1,11 @@
 (ns backend.middleware.formats
   (:require
-    [luminus-transit.time :as time]
-    [muuntaja.core :as m]))
+   [luminus-transit.time :as time]
+   [muuntaja.core :as m]))
 
 (def instance
   (m/create
-    (-> m/default-options
+   (-> m/default-options
         (update-in
           [:formats "application/transit+json" :decoder-opts]
           (partial merge time/time-deserialization-handlers))

@@ -7,6 +7,7 @@
    [taoensso.sente :as sente]
    [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]]
    [mount.core :as mount]
+   [muuntaja.core :as m]
    [backend.middleware :as middleware]))
 
 (declare receive-message! handle-message)
@@ -37,22 +38,12 @@
 (defn send-ws! [uid message]
   ((:send-fn socket) uid message))
 
-(def state-demo {:source "demo"
-               :content {:extensions [{:id "test" :realm "demo" :name "test"}]}})
-
 (defmulti handle-message
   (fn [{:keys [id]}]
     id))
 (defmethod handle-message :default
   [{:keys [id]}]
   (log/debug "Got unhandle message: " id))
-(defmethod handle-message :chsk/uidport-open
-  [_]
-  ((:dispatch-fn core-agent) "demo" state-demo))
-(defmethod handle-message :chsk/ws-ping
-  [_]
-  ((:dispatch-fn core-agent) "demo" state-demo))
-
  
 (defn receive-message! [{:keys [id] :as message}]
   (log/debug "Got message with id: " id)
@@ -61,15 +52,16 @@
 (defn agent-state [{:keys [path-params] :as request}]
   "Handle state from agent"
   (let [agent-id (:agent-id path-params)]
-    ;; TODO decode json body
-    ((:dispatch-fn core-agent) agent-id (:body request))
-    (response/created "/")))
+    (let [event (:body-params request)
+          dispatch (:dispatch-fn core-agent)]
+      (dispatch agent-id event)
+      (response/created "/"))))
 
 (defn agent-routes []
   [
    ""
    {:middleware [middleware/wrap-formats]}
-   ["/agent/:agent-id/state" {:post agent-state}]
+   ["/agent/:agent-id/realtime/state" {:put agent-state}]
    ["/ws"
     {
      :get (:ajax-get-or-ws-handshake-fn socket)

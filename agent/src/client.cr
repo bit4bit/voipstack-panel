@@ -39,14 +39,12 @@ module Voipstack::Agent
           break
         when event = @pending_events.receive
           @runtime.handle_softswitch_event(event)
-        else
+        when timeout 500.milliseconds
           # emitimos eventos del procesador runtime
           runtime_event = @runtime.pull_event?
           if !runtime_event.nil?
             http_dispatch_event(runtime_event)
           end
-
-          sleep 100.milliseconds
         end
       end
     end
@@ -60,7 +58,19 @@ module Voipstack::Agent
       client = HTTP::Client.new(@client_url)
       client.write_timeout = 3.second
       client.read_timeout = 3.second
-      client.put(@client_url.path, nil, event.to_json)
+      body = event.to_json
+
+      Log.debug { "Sending body: #{body.inspect}" }
+
+      client.put(@client_url.path, headers: HTTP::Headers{"Content-Type" => "application/json"}, body: body) do |response|
+        if response.status_code >= 300 && response.status_code < 400
+          STDERR.puts "not implemented http redirects, please hire a developer"
+        elsif response.status_code >= 400
+          Log.error { "http_dispatch_event got #{response.status_code} from server: #{response.body_io.gets}" }
+        end
+      end
+    rescue ex
+      STDERR.puts ex.inspect_with_backtrace
     end
   end
 
@@ -92,21 +102,17 @@ module Voipstack::Agent
 
       esl.set_events("HEARTBEAT CHANNEL_CALLSTATE CUSTOM sofia::register sofia::unregister")
 
-      events = esl.events
       loop do
-        event = events.receive
-        next if event.headers["content-type"] != "text/event-json"
-
+        sleep 300.millisecond
         # obtener estado de extension desde instancia
         registrations_data = esl.api "show registrations as json"
         channels_data = esl.api "show channels as json"
-        
+
         # generar nuevo estado
         new_state = Voipstack::Agent::Softswitch::FreeswitchState.new()
         new_state.handle_registrations_from_json(registrations_data)
         new_state.handle_channels_from_json(channels_data)
 
-        Log.debug { "handling new freeswitch state" }
         @client.handle_softswitch_state(new_state)
       end
     end

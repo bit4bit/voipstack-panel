@@ -10,9 +10,12 @@
 #
 # You should have received a copy of the GNU General Public License along with VOIPSTACK. If not, see <https://www.gnu.org/licenses/>.
 
+require "digest/md5"
+require "json"
+
 require "duktape"
 require "duktape/runtime"
-require "json"
+
 
 module Voipstack::Agent
   VERSION = "0.1.0"
@@ -100,7 +103,7 @@ module Voipstack::Agent
             presence_id = row["presence_id"].to_s
             calls[aleg_uuid] = {
               "id" => aleg_uuid,
-              "extension_id" => row["presence_id"].to_s,
+              "extension_id" => extension_key(row["presence_id"].to_s),
               "direction" => logical_direction[direction],
               "realm" => get_realm(presence_id),
               "caller_id_number" => row["cid_num"].to_s,
@@ -140,14 +143,15 @@ module Voipstack::Agent
           record["rows"].as_a.each do |row|
             reg_user = row["reg_user"].to_s
             realm = row["realm"].to_s
-            id = "#{reg_user}@#{realm}"
 
+            id = "#{reg_user}@#{realm}"
+            id_key = extension_key(reg_user, realm)
             extension = Extension.new
-            extension["id"] = id
+            extension["id"] = 
             extension["name"] = reg_user
             extension["realm"] = realm
 
-            extensions[id] = extension
+            extensions[id_key] = extension
           end
         end
 
@@ -157,6 +161,19 @@ module Voipstack::Agent
       private def get_realm(presence_id : String)
         _, realm = presence_id.split("@")
         realm
+      end
+
+      ## umm se espera que la presencia siga el patron user@domain
+      private def extension_key(presence_id) : String
+        hash_string(presence_id)
+      end
+      private def extension_key(name, realm) : String
+        hash_string("#{name}@#{realm}")
+      end
+      private def hash_string(val : String) : String
+        d = Digest::MD5.new
+        d << val
+        d.dup.final.hexstring
       end
     end
   end
@@ -235,6 +252,12 @@ module Voipstack::Agent
       end
     end
 
+    def handle_continue()
+      synchronize do
+        @js.call("handle_continue")
+      end
+    end
+
     # comando enviado por el servidor al agente
     def handle_panel_command(cmd : String, arg : String)
       synchronize do
@@ -281,7 +304,7 @@ module Voipstack::Agent
         loop do
           select
           when timeout @tick
-            runtime.handle_softswitch_state(Softswitch::FreeswitchState.new())
+            runtime.handle_continue()
           end
         end
       rescue exc
