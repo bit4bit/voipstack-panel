@@ -8,11 +8,7 @@
    (:extensions db)))
 
 (re-frame/reg-sub
- ::calls
+ ::calls-by-extension
  (fn [db]
-   (:calls db)))
-
-(re-frame/reg-sub
- ::name
- (fn [db]
-   (:name db)))
+   (let [calls (vals (:calls db))]
+     (group-by #(:extension_id %) calls))))

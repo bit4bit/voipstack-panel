@@ -16,9 +16,9 @@
             (let [extensions (get-in event [:content :extensions])
                   calls (get-in event [:content :calls])]
             
-              (.log js/console "Event Type " (pr-str event-type))
-              (.log js/console "Event " (pr-str event))
-              (.log js/console "Calls" (pr-str calls))
+              ;;(.log js/console "Event Type " (pr-str event-type))
+              ;;(.log js/console "Event " (pr-str event))
+              ;;(.log js/console "Calls" (pr-str calls))
               (assoc db
                      :extensions extensions
                      :calls calls))))

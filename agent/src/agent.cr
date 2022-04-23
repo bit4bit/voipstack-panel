@@ -147,7 +147,7 @@ module Voipstack::Agent
             id = "#{reg_user}@#{realm}"
             id_key = extension_key(reg_user, realm)
             extension = Extension.new
-            extension["id"] = 
+            extension["id"] = id_key
             extension["name"] = reg_user
             extension["realm"] = realm
 
