@@ -6,6 +6,13 @@
 
 (declare handle-message! receive-message! send!)
 
+(mount/defstate client-id
+  :start (->
+          (.-location js/window)
+          (.-search)
+          (js/URLSearchParams.)
+          (.get "client-id")))
+           
 (mount/defstate socket
   :start (sente/make-channel-socket!
           "/ws"
@@ -13,7 +20,7 @@
           {:type :auto
            :host "localhost"
            :port 3000
-           :client-id "demo"
+           :client-id @client-id
            :wrap-recv-evs? false}))
 
 (mount/defstate channel-router
