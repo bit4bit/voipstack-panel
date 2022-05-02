@@ -16,7 +16,7 @@ end
 
 desc "test in container"
 task :test => ['bin/core.js'] do
-  docker "crystal spec spec/agent_core_spec.cr --error-trace"
+  docker "crystal spec --error-trace"
 end
 
 

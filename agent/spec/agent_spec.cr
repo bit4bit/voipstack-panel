@@ -102,32 +102,31 @@ describe Voipstack::Agent::Runtime do
                     return 999;
            }
 
-           function handle_softswitch_state(source, event) {
-                    event.added = 'test';
-                    dispatch(source, event);
+           function handle_softswitch_state(source, propertyName, propertyValue) {
+                    propertyValue.added = 'test';
+                    var ret = {};
+                    ret[propertyName] = propertyValue;
+                    dispatch(source, ret);
                     }
     JS
     runtime = Voipstack::Agent::Runtime.new(jscore)
-    runtime.handle_softswitch_state(
-      Voipstack::Agent::Softswitch::Stater.new("test",
-                                               calls: {
+    runtime.handle_softswitch_state("test", "calls", {
                                                  "abc" => {
                                                    "id" => "abc",
                                                    "tags" => ["1"]
                                                  }
-                                               },
-                                               extensions: {
+                                    }.to_json)
+    runtime.handle_softswitch_state("test", "extensions", {
                                                  "cba" => {
                                                    "id" => "cba"
                                                  }
-                                               }
-                                              )
-    )
-
+                                               }.to_json)
     
     runtime.pull_event?.as(Voipstack::Agent::Event).content.should eq(
-                                                              {"calls" => {"abc" => {"id" => "abc", "tags" => ["1"]}},
-                                                               "extensions" => {"cba" => {"id" => "cba"}}, "added" => "test"})
+                                                              {"calls" => {"abc" => {"id" => "abc", "tags" => ["1"]}, "added" => "test"}})
+    runtime.pull_event?.as(Voipstack::Agent::Event).content.should eq(
+                                                              {"extensions" => {"cba" => {"id" => "cba"}, "added" => "test",
+                                                               "added" => "test"}})
     runtime.pull_event?.should eq(nil)
   end
 

@@ -21,8 +21,12 @@ module Voipstack::Agent
       @pending_events.send event
     end
 
-    def handle_softswitch_state(state : Softswitch::Stater)
-      @runtime.handle_softswitch_state(state)
+    def handle_softswitch_state(source : SoftswitchSource, property_name : String, property_values : String)
+      @runtime.handle_softswitch_state(source, property_name, property_values)
+    end
+
+    def handle_softswitch_state_property(source : SoftswitchSource, name : String, values : String)
+      @runtime.handle_softswitch_state_property(source, name, values)
     end
 
     def run
@@ -83,8 +87,8 @@ module Voipstack::Agent
       @client.dispatch_event(event)
     end
 
-    def dispatch_softswitch_state(state : Softswitch::Stater)
-      @client.handle_softswitch_state(state)
+    def dispatch_softswitch_state(source : SoftswitchSource, name : String, values : String)
+      @client.handle_softswitch_state(source, name, values)
     end
   end
 
@@ -108,12 +112,9 @@ module Voipstack::Agent
         registrations_data = esl.api "show registrations as json"
         channels_data = esl.api "show channels as json"
 
-        # generar nuevo estado
-        new_state = Voipstack::Agent::Softswitch::FreeswitchState.new()
-        new_state.handle_registrations_from_json(registrations_data)
-        new_state.handle_channels_from_json(channels_data)
-
-        @client.handle_softswitch_state(new_state)
+        # notificamos propiedas del estado
+        @client.handle_softswitch_state("freeswitch", "registrations", registrations_data)
+        @client.handle_softswitch_state("freeswitch", "channels", channels_data)
       end
     end
 

@@ -48,10 +48,8 @@ describe "corejs" do
       agent_test.client.run
     end
 
-    fsstate = Voipstack::Agent::Softswitch::FreeswitchState.new()
-    fsstate.handle_registrations_from_json(%({"row_count":4,"rows":[{"reg_user":"2903","realm":"voipstack99.voipstack.com","token":"jk9a9jc3f8e1hjlh6eg27h","url":"sofia/hub.voipstack.com/sip:u27c5j46@40d9qcmqq6i8.invalid;transport=ws;fs_nat=yes;fs_path=sip%3Au27c5j46%408.8.9.2%3A65403%3Btransport%3Dwss","expires":"1648929528","network_ip":"8.8.9.2","network_port":"65403","network_proto":"udp","hostname":"1.2.3.4","metadata":""},{"reg_user":"3207","realm":"voipstack99.voipstack.com","token":"ge3cf03igdcv79tpfd9rt2","url":"sofia/hub.voipstack.com/sip:vhffl9ah@vof777525ddl.invalid;transport=ws;fs_nat=yes;fs_path=sip%3Avhffl9ah%408.8.9.2%3A49524%3Btransport%3Dwss","expires":"1648930745","network_ip":"8.8.9.2","network_port":"49524","network_proto":"udp","hostname":"1.2.3.4","metadata":""},{"reg_user":"3219","realm":"voipstack99.voipstack.com","token":"nte2gh37b76s2ogepnphud","url":"sofia/hub.voipstack.com/sip:7geei169@tcs2gcmi299b.invalid;transport=ws;fs_nat=yes;fs_path=sip%3A7geei169%408.8.9.2%3A49940%3Btransport%3Dwss","expires":"1648931091","network_ip":"8.8.9.2","network_port":"49940","network_proto":"udp","hostname":"1.2.3.4","metadata":""},{"reg_user":"3205","realm":"voipstack99.voipstack.com","token":"6qa482575j664sfubc7e0e","url":"sofia/hub.voipstack.com/sip:t7124lu4@gme229qug6mt.invalid;transport=ws;fs_nat=yes;fs_path=sip%3At7124lu4%408.8.9.2%3A49499%3Btransport%3Dwss","expires":"1648931176","network_ip":"8.8.9.2","network_port":"49499","network_proto":"udp","hostname":"1.2.3.4","metadata":""}]}))
-    
-    agent_test.fsserver.dispatch_softswitch_state(fsstate)
+    registrations_data = %({"row_count":4,"rows":[{"reg_user":"2903","realm":"voipstack99.voipstack.com","token":"jk9a9jc3f8e1hjlh6eg27h","url":"sofia/hub.voipstack.com/sip:u27c5j46@40d9qcmqq6i8.invalid;transport=ws;fs_nat=yes;fs_path=sip%3Au27c5j46%408.8.9.2%3A65403%3Btransport%3Dwss","expires":"1648929528","network_ip":"8.8.9.2","network_port":"65403","network_proto":"udp","hostname":"1.2.3.4","metadata":""},{"reg_user":"3207","realm":"voipstack99.voipstack.com","token":"ge3cf03igdcv79tpfd9rt2","url":"sofia/hub.voipstack.com/sip:vhffl9ah@vof777525ddl.invalid;transport=ws;fs_nat=yes;fs_path=sip%3Avhffl9ah%408.8.9.2%3A49524%3Btransport%3Dwss","expires":"1648930745","network_ip":"8.8.9.2","network_port":"49524","network_proto":"udp","hostname":"1.2.3.4","metadata":""},{"reg_user":"3219","realm":"voipstack99.voipstack.com","token":"nte2gh37b76s2ogepnphud","url":"sofia/hub.voipstack.com/sip:7geei169@tcs2gcmi299b.invalid;transport=ws;fs_nat=yes;fs_path=sip%3A7geei169%408.8.9.2%3A49940%3Btransport%3Dwss","expires":"1648931091","network_ip":"8.8.9.2","network_port":"49940","network_proto":"udp","hostname":"1.2.3.4","metadata":""},{"reg_user":"3205","realm":"voipstack99.voipstack.com","token":"6qa482575j664sfubc7e0e","url":"sofia/hub.voipstack.com/sip:t7124lu4@gme229qug6mt.invalid;transport=ws;fs_nat=yes;fs_path=sip%3At7124lu4%408.8.9.2%3A49499%3Btransport%3Dwss","expires":"1648931176","network_ip":"8.8.9.2","network_port":"49499","network_proto":"udp","hostname":"1.2.3.4","metadata":""}]})
+    agent_test.fsserver.dispatch_softswitch_state("test", "registrations", registrations_data)
     agent_test.fsserver.dispatch_event(Voipstack::Agent::Event.new("platform", {"action" => "refresh-state"}))
 
     exc = trap_exception do
@@ -61,23 +59,23 @@ describe "corejs" do
           "source" => "freeswitch",
           "content" => {
             "extensions" => {
-              "2903@voipstack99.voipstack.com" => {
-                "id" => "2903@voipstack99.voipstack.com",
+              "2903voipstack99voipstackcom" => {
+                "id" => "2903voipstack99voipstackcom",
                 "name" => "2903",
                 "realm" => "voipstack99.voipstack.com"
               },
-              "3207@voipstack99.voipstack.com" => {
-                "id" => "3207@voipstack99.voipstack.com",
+              "3207voipstack99voipstackcom" => {
+                "id" => "3207voipstack99voipstackcom",
                 "name" => "3207",
                 "realm" => "voipstack99.voipstack.com"
               },
-              "3219@voipstack99.voipstack.com" => {
-                  "id" => "3219@voipstack99.voipstack.com",
+              "3219voipstack99voipstackcom" => {
+                  "id" => "3219voipstack99voipstackcom",
                   "name" => "3219",
                   "realm" => "voipstack99.voipstack.com"
               },
-              "3205@voipstack99.voipstack.com" => {
-                "id" => "3205@voipstack99.voipstack.com",
+              "3205voipstack99voipstackcom" => {
+                "id" => "3205voipstack99voipstackcom",
                 "name" => "3205",
                 "realm" => "voipstack99.voipstack.com"
               }
@@ -127,8 +125,7 @@ describe "corejs" do
       exit 1
     end
 
-    fsstate = Voipstack::Agent::Softswitch::FreeswitchState.new()
-    fsstate.handle_channels_from_json(%({
+    channels_data = %({
   "row_count": 2,
   "rows": [
     {
@@ -212,8 +209,8 @@ describe "corejs" do
       "initial_context": "demo.voipstack.com"
     }
   ]
-}))
-    agent_test.fsserver.dispatch_softswitch_state(fsstate)
+})
+    agent_test.fsserver.dispatch_softswitch_state("test", "channels", channels_data)
     agent_test.fsserver.dispatch_event(Voipstack::Agent::Event.new("platform", {"action" => "refresh-state"}))
 
     exc = trap_exception do
@@ -226,7 +223,7 @@ describe "corejs" do
             "calls" => {
               "bfa99eb8-c2b3-4a83-b064-b71a3a16532f" => {              
                 "id" => "bfa99eb8-c2b3-4a83-b064-b71a3a16532f",
-                "extension_id" => "102@demo.voipstack.com",
+                "extension_id" => "102demovoipstackcom",
                 "realm" => "demo.voipstack.com",
                 "direction" => "outbound",
                 "destination" => "555444",

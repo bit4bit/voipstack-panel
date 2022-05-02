@@ -60,139 +60,6 @@ module Voipstack::Agent
     end
   end
 
-  class Softswitch
-    class Stater
-
-      getter :source
-      getter :calls
-      getter :extensions
-
-      def initialize(@source : SoftswitchSource, @calls = Calls.new, @extensions = Extensions.new)
-        super()
-      end
-
-      def to_json : String
-        {"calls" => @calls,
-         "extensions" => @extensions}.to_json()
-      end
-    end
-
-    class FreeswitchState < Stater
-      def initialize
-        super("freeswitch")
-      end
-
-      # data es obtenida usando 'show channels as json'
-      # algunas consideraciones:
-      # - un canal outbound con presence_id es desde una extension
-      # y su b leg seria el channel cuyo call_uuid corresponde al uuid
-      def handle_channels_from_json(data : String) : Calls
-        record = JSON.parse(data)
-        calls = Calls.new
-
-        if record["row_count"].to_s.to_i > 0
-          record["rows"].as_a.each do |row|
-            aleg_uuid = row["uuid"].to_s
-            call_uuid = row["call_uuid"].to_s
-
-            next if !call_uuid.empty?
-            # respecto a la extension
-            logical_direction = { "inbound" => "outbound", "outbound" => "inbound" }
-            direction = row["direction"].to_s
-
-            presence_id = row["presence_id"].to_s
-            calls[aleg_uuid] = {
-              "id" => aleg_uuid,
-              "extension_id" => extension_key(row["presence_id"].to_s),
-              "direction" => logical_direction[direction],
-              "realm" => get_realm(presence_id),
-              "caller_id_number" => row["cid_num"].to_s,
-              "caller_id_name" => row["cid_name"].to_s,
-              "destination" => row["dest"].to_s,
-              "created_epoch" => row["created_epoch"].to_s,
-              "tags" => [] of String
-            }
-
-          end
-
-          record["rows"].as_a.each do |row|
-            aleg_uuid = row["uuid"].to_s
-            call_uuid = row["call_uuid"].to_s
-            next if call_uuid.empty?
-            # procesar cuando se encuentra la leg B
-            if calls.has_key?(call_uuid)
-              calls[call_uuid].merge!({
-                "callstate" => row["callstate"].to_s.downcase,
-                "caller_id_number" => row["cid_num"].to_s,
-                "caller_id_name" => row["cid_name"].to_s,
-                "callee_id_number" => row["callee_num"].to_s,
-                "callee_id_name" => row["callee_name"].to_s,
-              })
-            end
-          end
-        end
-
-        @calls = calls
-      end
-
-      def handle_registrations_from_json(data : String) : Extensions
-        record = JSON.parse(data)
-        extensions = Extensions.new
-          
-        if record["row_count"].to_s.to_i > 0
-          record["rows"].as_a.each do |row|
-            reg_user = row["reg_user"].to_s
-            realm = row["realm"].to_s
-
-            id = "#{reg_user}@#{realm}"
-            id_key = extension_key(reg_user, realm)
-            extension = Extension.new
-            extension["id"] = id_key
-            extension["name"] = reg_user
-            extension["realm"] = realm
-
-            extensions[id_key] = extension
-          end
-        end
-
-        @extensions = extensions
-      end
-
-      private def get_realm(presence_id : String)
-        _, realm = presence_id.split("@")
-        realm
-      end
-
-      ## umm se espera que la presencia siga el patron user@domain
-      private def extension_key(presence_id) : String
-        hash_string(presence_id)
-      end
-      private def extension_key(name, realm) : String
-        hash_string("#{name}@#{realm}")
-      end
-      private def hash_string(val : String) : String
-        d = Digest::MD5.new
-        d << val
-        d.dup.final.hexstring
-      end
-    end
-  end
-
-  class SoftswitchStateGetter
-    def state : Voipstack::Agent::Softswitch::Stater?
-    end
-  end
-  
-  class SoftswitchStateGetterDumb < SoftswitchStateGetter
-    def state
-      nil
-    end
-  end
-  class SoftswitchStateGetterInMemory < SoftswitchStateGetter
-    getter :state
-    def initialize(@state : Voipstack::Agent::Softswitch::Stater)
-    end
-  end
 
   # Runtime hace dinamica la logica del agente
   # esto con el proposito de actualizar en tiempo de ejecucion el core.
@@ -222,9 +89,9 @@ module Voipstack::Agent
 
                // NOTE(bit4bit) requerimos este envolvente ya que duktape
                // no codifica objetos recursivos de crystal
-               function _unserialize_handle_softswitch_state(source, data) {
-                        var _event = JSON.parse(data);
-                        return handle_softswitch_state(source, _event);
+               function _unserialize_handle_softswitch_state(source, name, data_json) {
+                        var _data = JSON.parse(data_json);
+                        return handle_softswitch_state(source, name, _data);
                }
       JS
       @js.exec jscore
@@ -246,9 +113,9 @@ module Voipstack::Agent
     end
 
     # se ejecuta frecuentemente
-    def handle_softswitch_state(state : Softswitch::Stater)
+    def handle_softswitch_state(source : SoftswitchSource, name : String, values : String)
       synchronize do
-        @js.call("_unserialize_handle_softswitch_state", state.source, state.to_json)
+        @js.call("_unserialize_handle_softswitch_state", source, name, values)
       end
     end
 
