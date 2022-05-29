@@ -6,6 +6,8 @@ require "freeswitch-esl"
 require "./agent"
 
 module Voipstack::Agent
+
+  # Conectamos el runtime con la plataforma voipstack
   class Client
     @pending_events : Channel(Voipstack::Agent::Event)
     @done = Channel(Nil).new
@@ -103,8 +105,6 @@ module Voipstack::Agent
         raise "fails to connect please review connection or credentials"
       end
       Log.debug {"connected to freeswitch #{@host}"}
-
-      esl.set_events("HEARTBEAT CHANNEL_CALLSTATE CUSTOM sofia::register sofia::unregister")
 
       loop do
         sleep 300.millisecond
