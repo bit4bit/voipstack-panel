@@ -24,7 +24,12 @@ module Voipstack::Agent
   alias Calls = Hash(String, Call)
   alias Extension = Hash(String, String)
   alias Extensions = Hash(String, Extension)
-
+  # queue => agent
+  alias CallcenterTier = Hash(String, String)
+  alias CallcenterTiers = Hash(String, CallcenterTier)
+  # attribute => value
+  alias CallcenterQueue = Hash(String, String)
+  alias CallcenterQueues = Hash(String, CallcenterQueue)
   alias EventValue = String | Hash(String, String) | Extensions | Calls
   alias EventContent = Hash(String, EventContent) | String | Hash(String, String) | Extensions | Calls
 

@@ -17,6 +17,42 @@ interface SoftswitchEvent {
 }
 type SoftswitchCommand = string
 type SoftswitchCommandArgument = string
+type ResourceID = string;
+
+class ResourceIDFactory
+{
+    public static fromString(name: string): ResourceID
+    {
+        return name.replace(/[^a-zA-Z0-9]/g, "");
+    }
+}
+
+class CallcenterQueue
+{
+    id: ResourceID;
+    name: string;
+
+    constructor(name: string) {
+        this.id = ResourceIDFactory.fromString(name);
+        this.name = name;
+    }
+}
+
+class CallcenterTier
+{
+    id: ResourceID;
+
+    queue_id: ResourceID;
+    // mod_callcenter de freeswitch este concepto
+    // esta descoplado, intentamos relacionarlo
+    extension_id: ResourceID;
+
+    constructor(queue_id: string, extension_id: string) {
+        this.id = ResourceIDFactory.fromString(`${queue_id}@${extension_id}`);
+        this.queue_id = ResourceIDFactory.fromString(queue_id);
+        this.extension_id = ResourceIDFactory.fromString(extension_id);
+    }
+}
 
 class Call {
     id: string;
@@ -69,6 +105,8 @@ class Extension {
 
 type Extensions = { [key in string]: Extension };
 type Calls = { [key in string]: Call };
+type CallcenterQueues = any;
+type CallcenterTiers = any;
 
 // representa el estado del softswitch
 class Softswitch {
@@ -77,6 +115,8 @@ class Softswitch {
     version: string;
     extensions: Extensions = {};
     calls: Calls = {};
+    callcenter_queues: CallcenterQueues = {};
+    callcenter_tiers: CallcenterTiers = {};
 }
 
 interface SoftswitchState {
@@ -100,6 +140,19 @@ declare  function dispatch(source : SoftswitchSource, event : any) : void;
 //gestionar nueva estado del softswitch
 function handle_softswitch_state(source : SoftswitchSource, propertyName : string, propertyValues : any) {
     switch(propertyName) {
+        case "callcenter_tiers":
+            for(let row of propertyValues["rows"]) {
+                const callcenterTier = new CallcenterTier(row.queue, row.agent)
+
+                softswitch.callcenter_tiers[callcenterTier.id] = callcenterTier;
+            }
+            break;
+        case "callcenter_queues":
+            for(let row of propertyValues["rows"]) {
+                const callcenterQueue = new CallcenterQueue(row.name);
+                softswitch.callcenter_queues[callcenterQueue.id] = callcenterQueue;
+            }
+            break;
         case "registrations":
             for(let row of propertyValues["rows"]) {
                 const extension = new Extension(row.reg_user, row.realm);

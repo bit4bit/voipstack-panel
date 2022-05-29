@@ -111,10 +111,14 @@ module Voipstack::Agent
         # obtener estado de extension desde instancia
         registrations_data = esl.api "show registrations as json"
         channels_data = esl.api "show channels as json"
+        callcenter_queues_data = esl.api %q(json {"command": "callcenter_config", "format": "pretty", "data": {"arguments":"queue list"}})
+        callcenter_tiers_data = esl.api %q(json {"command": "callcenter_config", "format": "pretty", "data": {"arguments":"tier list"}})
 
         # notificamos propiedas del estado
         @client.handle_softswitch_state("freeswitch", "registrations", registrations_data)
         @client.handle_softswitch_state("freeswitch", "channels", channels_data)
+        @client.handle_softswitch_state("freeswitch", "callcenter_queues", callcenter_queues_data)
+        @client.handle_softswitch_state("freeswitch", "callcenter_tiers", callcenter_tiers_data)
       end
     end
 

@@ -80,7 +80,9 @@ describe "corejs" do
                 "realm" => "voipstack99.voipstack.com"
               }
             },
-            "calls" => Voipstack::Agent::Calls.new
+            "calls" => Voipstack::Agent::Calls.new,
+            "callcenter_queues" => Voipstack::Agent::CallcenterQueues.new,
+            "callcenter_tiers" => Voipstack::Agent::CallcenterTiers.new
           }
         }
         
@@ -233,9 +235,11 @@ describe "corejs" do
                 "callee_id_name" => "98765321",
                 "callee_id_number" => "98765321",
                 "created_epoch" => "1650234539",
-                "tags" => [] of String,
+                "tags" => [] of String
               }
-            }
+            },
+            "callcenter_queues" => Voipstack::Agent::CallcenterQueues.new,
+            "callcenter_tiers" => Voipstack::Agent::CallcenterTiers.new
           }
         }
 
