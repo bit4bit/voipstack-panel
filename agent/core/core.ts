@@ -3,7 +3,7 @@
 type SoftswitchSource = string;
 
 type Realm = string;
-type UnixTimestamp = number;
+type UnixTimestamp = string;
 type LegNumber = string;
 type LegName = string
 
@@ -35,6 +35,10 @@ class CallcenterQueue
     constructor(name: string) {
         this.id = ResourceIDFactory.fromString(name);
         this.name = name;
+    }
+
+    toString(): string {
+        return this.id;
     }
 }
 
@@ -69,7 +73,8 @@ class Call {
     created_epoch: UnixTimestamp;
     answered_epoch: UnixTimestamp;
     hangup_epoch: UnixTimestamp;
-
+    seconds_since_creation: UnixTimestamp;
+    
     // etiquetamos la llamada, ejemplos: inbound,
     // callcenter-queue:7000@pruebas.org
     tags: Tags;
@@ -117,6 +122,22 @@ class Softswitch {
     calls: Calls = {};
     callcenter_queues: CallcenterQueues = {};
     callcenter_tiers: CallcenterTiers = {};
+
+    resetExtensions() {
+        this.extensions = {};
+    }
+
+    resetCalls() {
+        this.calls = {};
+    }
+
+    resetCallcenterQueues() {
+        this.callcenter_queues = {};
+    }
+
+    resetCallcenterTiers() {
+        this.callcenter_tiers = {};
+    }
 }
 
 interface SoftswitchState {
@@ -139,39 +160,66 @@ declare  function dispatch(source : SoftswitchSource, event : any) : void;
 
 //gestionar nueva estado del softswitch
 function handle_softswitch_state(source : SoftswitchSource, propertyName : string, propertyValues : any) {
+    if (!(source == "freeswitch" || source == "freeswitch-test")) {
+        //TODO por ahora solo gestionamos para freeswitch
+        return;
+    }
+    var now_timestamp = Math.ceil(Date.now() / 1000);
+
     switch(propertyName) {
         case "callcenter_tiers":
-            for(let row of propertyValues["rows"]) {
+            if (propertyValues["status"] != "success") {
+                softswitch.resetCallcenterTiers();
+                return;
+            }
+
+            for(let row of propertyValues["response"]) {
                 const callcenterTier = new CallcenterTier(row.queue, row.agent)
 
                 softswitch.callcenter_tiers[callcenterTier.id] = callcenterTier;
             }
             break;
         case "callcenter_queues":
-            for(let row of propertyValues["rows"]) {
+            if (propertyValues.status != "success") {
+                softswitch.resetCallcenterQueues();
+                return;
+            }
+
+            for(let row of propertyValues.response) {
                 const callcenterQueue = new CallcenterQueue(row.name);
                 softswitch.callcenter_queues[callcenterQueue.id] = callcenterQueue;
             }
             break;
         case "registrations":
-            for(let row of propertyValues["rows"]) {
+            if (propertyValues.row_count == 0) {
+                softswitch.resetExtensions();
+                return;
+            }
+
+            for(let row of propertyValues.rows) {
                 const extension = new Extension(row.reg_user, row.realm);
                 
                 softswitch.extensions[extension.id] = extension;
             }
             break;
         case "channels":
-            if (propertyValues.row_count < 1)
-                break;
+            if (propertyValues.row_count == 0) {
+                softswitch.resetCalls();
+                return;
+            }
 
             const alegs = propertyValues.rows.filter((v: any) => v.call_uuid == "");
             const blegs = propertyValues.rows.filter((v: any) => v.call_uuid != "");
-
 
             for(const data of alegs) {
                 const call = new Call();
                 const ext = Extension.fromPresenceId(data.presence_id);
                 const logical_direction: {[key in string]: string} =  {"inbound":"outbound", "outbound":"inbound"};
+                // MACHETE(bit4bit) como manejamos el tiempo?
+                if (source == "freeswitch-test") {
+                    now_timestamp = parseInt(data.created_epoch) + 10;
+                }
+
                 // OJO el orden es importante para las pruebas
                 // ya que con este orden se codifica el json
                 call.id = data.uuid;
@@ -184,7 +232,8 @@ function handle_softswitch_state(source : SoftswitchSource, propertyName : strin
                 call.caller_id_number = data.cid_num;
                 call.callee_id_name = "";
                 call.callee_id_number = "";
-                call.created_epoch = data.created_epoch;
+                call.created_epoch = String(data.created_epoch);
+                call.seconds_since_creation = String(now_timestamp - parseInt(data.created_epoch));
                 call.tags = [];
 
                 softswitch.calls[data.uuid] = call;

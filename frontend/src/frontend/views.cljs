@@ -11,11 +11,11 @@
      [:table {:class "table is-bordered"}
       [:thead
        [:tr
-        [:th {:colspan (count calls)} (:name extension)]]]
+        [:th {:colSpan (count calls)} (:name extension)]]]
       [:tbody
        [:tr
         (for [call calls]
-          ^{:key (:id call)} [:td (:destination call)])]]]]))
+          ^{:key (:id call)} [:td {} (:destination call) "T" (:seconds_since_creation call)])]]]]))
 
 (defn main-panel []
   (let [extensions @(re-frame/subscribe [::subs/extensions])
