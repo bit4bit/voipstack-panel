@@ -1,0 +1,9 @@
+;; https://clojure.org/guides/tools_build
+{:paths ["src"]
+ :deps
+ {freeswitch-clj/freeswitch-clj {:mvn/version "1.3.0-SNAPSHOT-4"}}
+
+ :aliases
+ {;; Run with clj -T:build function-in-build
+  :build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.2" :git/sha "ba1a2bf"}}
+          :ns-default build}}}

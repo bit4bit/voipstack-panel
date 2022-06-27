@@ -1,6 +1,0 @@
-freeswitch_host: localhost
-freeswitch_port: 8021
-freeswitch_pass: ClueCon
-backend_endpoint_url: http://localhost:3000
-client_uuid: demo
-core_path: ./bin/core.js

@@ -27,6 +27,6 @@ frontend/.shadow-cljs/
 agent/lib
 agent/bin
 agent/node_modules
-
+agent/target
 **~
 **#
