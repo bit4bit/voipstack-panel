@@ -10,4 +10,5 @@
   (merge state {:test \"from scripting\"}))
 ")
           rt (runtime/process-event rt :test {})]
-      (is (= "from scripting" (:test (runtime/softswitch-state rt)))))))
+      (is (= "from scripting" (:test (runtime/state rt)))))))
+

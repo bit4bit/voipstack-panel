@@ -7,14 +7,14 @@
    [sci.core :as sci]))
 
 (defn string->new [code]
-  (let [initial-softswitch-state {}
+  (let [initial-state {}
         var-event (sci/new-dynamic-var 'event {})
         var-source (sci/new-dynamic-var 'source {})
         ;; https://github.com/babashka/sci
-        ctx (sci/init {:bindings {'softswitch-state initial-softswitch-state 'event var-event 'source var-source}})]
+        ctx (sci/init {:bindings {'state initial-state 'event var-event 'source var-source}})]
     (sci/eval-string* ctx code)
     {:context ctx
-     :softswitch-state initial-softswitch-state
+     :state initial-state
      :vars {:event var-event :source var-source}}))
 
 (defn process-event [runtime source event]
@@ -26,7 +26,7 @@
                   runtime-var-source source]
       (merge
        runtime
-       {:softswitch-state (sci/eval-string* ctx "(process-event source softswitch-state event)")}))))
+       {:state (sci/eval-string* ctx "(process-event source state event)")}))))
 
-(defn softswitch-state [ctx]
-  (:softswitch-state ctx))
+(defn state [ctx]
+  (:state ctx))
