@@ -10,17 +10,29 @@
 (s/def ::source keyword?)
 (s/def ::id string?)
 (s/def ::alias string?)
-(s/def ::source-endpoint string?)
-(s/def ::source-id string?)
-(s/def ::destination-endpoint string?)
-(s/def ::destination-id string?)
+(def direction? #{:inbound :outbound})
+(s/def ::caller-direction direction?) ;; :inbound | :outbound
+(s/def ::caller-destination string?)
+(s/def ::caller-device string?)
+(s/def ::callee-destination string?)
+(s/def ::callee-device string?)
+(s/def ::caller-name string?)
+(s/def ::caller-number string?)
+(s/def ::callee-name string?)
+(s/def ::callee-number string?)
 (s/def ::extension (s/keys :req-un [::id]
                            :opt-un [::alias]))
 (s/def ::extensions (s/map-of string? ::extension))
-(s/def ::call (s/keys :req-un [::source-endpoint
-                               ::source-id
-                               ::destination-endpoint
-                               ::destination-id]))
+(s/def ::call (s/keys :req-un [::caller-direction
+                               ::caller-destination
+                               ::caller-device
+                               ::callee-destination
+                               ::callee-device]
+                      :opt-un [::caller-name
+                               ::caller-number
+                               ::callee-name
+                               ::callee-number]))
+                               
 (s/def ::calls (s/* ::call))
 (s/def ::state (s/keys :req-un [::source]
                        :opt-un [::extensions ::calls]))

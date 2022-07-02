@@ -13,15 +13,16 @@
           rt (runtime/process-event rt {:event-name "voipstack"})]
       
       (is (= "from scripting voipstack" (:test (runtime/get-state rt))))))
- (testing "spec runtime state"
+ (testing "schema runtime state"
    (let [rt (runtime/string->new :test "")
          state {:source :test
                 :extensions {"1000" {:id "1000"}}
                 :calls [
-                        {:source-endpoint "mod_sofia"
-                         :source-id "sip-profile"
-                         :destination-endpoint "mod_sofia"
-                         :destination-id "1000"
+                        {:caller-direction :outbound
+                         :caller-destination "123"
+                         :caller-device "carrier"
+                         :callee-destination "1000"
+                         :callee-device "extension"
                         }]}]
       
       (is (= true (s/valid? ::runtime/state state))))))
