@@ -41,25 +41,42 @@
   (let [initial-state {:source source}
         var-event (sci/new-dynamic-var 'event {})
         var-source (sci/new-dynamic-var 'source {})
+        var-cmd (sci/new-dynamic-var 'cmd {})
+        var-response (sci/new-dynamic-var 'response {})
         ;; https://github.com/babashka/sci
-        ctx (sci/init {:bindings {'state initial-state 'event var-event 'source var-source}})]
+        ctx (sci/init {:bindings {'state initial-state 'event var-event 'source var-source 'cmd var-cmd 'response var-response}})]
     (sci/eval-string* ctx code)
-    {:context ctx
+    (atom {:context ctx
      :source source
      :state initial-state
-     :vars {:event var-event :source var-source}}))
+     :vars {:event var-event :source var-source :cmd var-cmd :response var-response}})))
 
-(defn process-event [runtime event]
-  (let [ctx (:context runtime)
-        source (:source runtime)
-        runtime-var-event (get-in runtime [:vars :event])
-        runtime-var-source (get-in runtime [:vars :source])]
+(defn process-event
+  "process event of softswitch"
+  [runtime event]
+  (let [ctx (:context @runtime)
+        source (:source @runtime)
+        runtime-var-event (get-in @runtime [:vars :event])
+        runtime-var-source (get-in @runtime [:vars :source])]
     
     (sci/binding [runtime-var-event event
                   runtime-var-source source]
-      (merge
-       runtime
-       {:state (sci/eval-string* ctx "(process-event source state event)")}))))
+      (let [result (sci/eval-string* ctx "(process-event source state event)")]
+        (swap! runtime #(merge % {:state result}))
+        runtime))))
 
-(defn get-state [ctx]
-  (:state ctx))
+
+(defn process-response
+  "process response of softswitch command"
+  [runtime cmd response]
+  {:pre [(map? response)]}
+  (let [ctx (:context @runtime)
+        runtime-var-cmd (get-in @runtime [:vars :cmd])
+        runtime-var-response (get-in @runtime [:vars :response])]
+    (sci/binding [runtime-var-cmd cmd
+                  runtime-var-response response]
+      (let [result (sci/eval-string* ctx "(process-response source state cmd response)")]
+        (swap! runtime #(merge % {:state result}))))))
+
+(defn get-state [runtime]
+  (:state @runtime))
