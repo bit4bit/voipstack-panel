@@ -17,8 +17,20 @@
 
       (runtime/process-event rt {:event-name "voipstack"})
       (is (= "from scripting voipstack" (:test (runtime/get-state rt))))))
- (testing "schema runtime state"
-   (let [rt (runtime/string->new :test "")
+  (testing "runtime/process-event not allowed to change shape of state"
+    (let [rt (runtime/string->new :test "
+(defn process-event [source state event]
+false)
+")]
+      (is (thrown? AssertionError (runtime/process-event rt {:event-name "test"})))))
+  (testing "runtime/process-response not allowed to change shape of state"
+    (let [rt (runtime/string->new :test "
+(defn process-response [source state cmd response]
+false)
+")]
+      (is (thrown? AssertionError (runtime/process-response rt :registrations {})))))
+  (testing "schema runtime state"
+    (let [rt (runtime/string->new :test "")
          state {:source :test
                 :extensions {"1000" {:id "1000"}}
                 :calls [

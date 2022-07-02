@@ -54,6 +54,7 @@
 (defn process-event
   "process event of softswitch"
   [runtime event]
+  {:post [(s/valid? ::state (:state @runtime))]}
   (let [ctx (:context @runtime)
         source (:source @runtime)
         runtime-var-event (get-in @runtime [:vars :event])
@@ -69,7 +70,8 @@
 (defn process-response
   "process response of softswitch command"
   [runtime cmd response]
-  {:pre [(map? response)]}
+  {:pre [(map? response)]
+   :post [(s/valid? ::state (:state @runtime))]}
   (let [ctx (:context @runtime)
         runtime-var-cmd (get-in @runtime [:vars :cmd])
         runtime-var-response (get-in @runtime [:vars :response])]
