@@ -71,7 +71,8 @@
   "process response of softswitch command"
   [runtime cmd response]
   {:pre [(map? response)]
-   :post [(s/valid? ::state (:state @runtime))]}
+   :post [(s/valid? ::state (:state @runtime))]
+   }
   (let [ctx (:context @runtime)
         runtime-var-cmd (get-in @runtime [:vars :cmd])
         runtime-var-response (get-in @runtime [:vars :response])]

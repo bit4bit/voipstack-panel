@@ -2,11 +2,12 @@
   (:require
    [clojure.test :refer :all]
    [clojure.spec.alpha :as s]
+   [cheshire.core :as json]
    [voipstack.agent.config :as config]
    [voipstack.agent.runtime :as runtime]))
 
 (defn- json->map [file]
-  {})
+  (json/parse-stream (clojure.java.io/reader file)))
 
 (deftest runtime
   (testing "update state on softswitch event"
@@ -42,12 +43,13 @@ false)
                         }]}]
       
      (is (= true (s/valid? ::runtime/state state)))))
-  (testing "freeswitch process response of show registrations"
+  (testing "update state using freeswitch response of show registrations"
     (let [core-code (slurp config/freeswitch-runtime-implementation-script)
           rt (runtime/string->new :freeswitch core-code)
-          api_response (json->map "registrations.json")
+          api_response {"rows_count" 1
+                        "rows" [{"reg_user" "1000", "realm" "voipstack.com"}]}
           expected_state {:source :freeswitch
-                          :extensions {"1000" {:id "1000"}}}]
+                          :extensions {"1000@voipstack.com" {:id "1000@voipstack.com"}}}]
 
       (runtime/process-response rt :registrations api_response)
       (is (= expected_state (runtime/get-state rt))))))
